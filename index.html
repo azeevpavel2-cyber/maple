@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fff8f1">
+<title>Maple</title>
+<style>
+  :root {
+    color-scheme: light;
+    font-family: 'Geist', 'Segoe UI', sans-serif;
+    color: #392419;
+    background: #f8eadf;
+    --paper: #fffaf6;
+    --ink: #392419;
+    --soft: #765443;
+    --line: #efd9c8;
+    --orange: #c74713;
+    --active: #ffebdb;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; min-height: 100%; }
+  button, input { font: inherit; }
+  button { color: inherit; cursor: pointer; }
+  button:disabled { cursor: default; opacity: .37; }
+  :focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+  .shell { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: 14rem minmax(0, 1fr); }
+  .rail { background: #fbede2; padding: 2rem 1.2rem 1.35rem; display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: .73rem; padding: 0 .45rem; margin-bottom: 3rem; }
+  .brand strong { display: block; font-size: 1.63rem; font-weight: 800; letter-spacing: -.06em; line-height: 1.02; }
+  .brand small { display: block; margin-top: .28rem; color: var(--soft); font-size: .77rem; }
+  .mark { display: grid; place-items: center; flex: none; width: 2.6rem; height: 2.6rem; border-radius: .78rem; background: #dc521b; color: #fff5e6; }
+  .leaf { width: 65%; height: 67%; background: currentColor; clip-path: polygon(50% 0%, 60% 26%, 70% 20%, 66% 44%, 87% 31%, 88% 43%, 100% 43%, 94% 60%, 97% 67%, 68% 79%, 70% 89%, 53% 85%, 53% 100%, 47% 100%, 47% 85%, 30% 89%, 32% 79%, 3% 67%, 6% 60%, 0% 43%, 12% 43%, 13% 31%, 34% 44%, 30% 20%, 40% 26%); }
+  .rail-label { color: var(--soft); font-size: .74rem; letter-spacing: .13em; font-weight: 700; text-transform: uppercase; padding: 0 .7rem; margin: 0 0 .65rem; }
+  .rail-button { width: 100%; padding: .72rem; border: 1px solid transparent; background: transparent; display: flex; align-items: center; gap: .65rem; border-radius: .68rem; text-align: left; font-weight: 600; }
+  .rail-button:hover, .rail-button[aria-current="page"] { background: #ffe3ce; border-color: #f4cfb3; color: #8e320e; }
+  .rail nav { display: grid; gap: .32rem; }
+  .rail-footer { margin-top: auto; padding: 1.25rem .7rem .2rem; }
+  .rail-footer button { background: transparent; border: 0; font-weight: 600; color: var(--soft); padding: .3rem 0; }
+  .rail-footer button:hover { color: var(--orange); text-decoration: underline; }
+  .icon { display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; flex: none; font-family: 'Segoe UI Symbol', sans-serif; line-height: 1; }
+  .browser { min-width: 0; display: flex; flex-direction: column; background: #fff5eb; }
+  .tabbar { display: flex; align-items: center; min-width: 0; min-height: 3.5rem; padding: .6rem .9rem .5rem; gap: .5rem; border-bottom: 1px solid var(--line); }
+  .tabs { display: flex; min-width: 0; gap: .42rem; overflow-x: auto; scrollbar-width: thin; padding: .18rem; }
+  .tab { display: flex; align-items: center; flex: 0 0 clamp(8.2rem, 21vw, 12rem); max-width: 12rem; min-width: 0; border-radius: .65rem; border: 1px solid transparent; }
+  .tab.active { background: #fffdfa; border-color: var(--line); box-shadow: 0 2px 4px #6a33070d; }
+  .tab:not(.active):hover { background: #ffeadb; }
+  .tab-select { border: 0; background: transparent; min-width: 0; flex: 1; display: flex; align-items: center; gap: .5rem; padding: .46rem .55rem; text-align: left; font-weight: 650; font-size: .86rem; border-radius: .5rem; }
+  .tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab-select .icon { color: var(--orange); }
+  .tab-close { border: 0; border-radius: .45rem; background: transparent; font-size: 1.14rem; line-height: 1; width: 1.65rem; height: 1.7rem; margin: 0 .23rem 0 0; }
+  .tab-close:hover { background: var(--active); }
+  .icon-button { display: grid; place-items: center; flex: none; height: 2.25rem; width: 2.25rem; border: 1px solid transparent; background: transparent; border-radius: .55rem; font-size: 1.18rem; line-height: 1; }
+  .icon-button:hover:not(:disabled) { background: var(--active); border-color: var(--line); }
+  .toolbar { display: flex; gap: .29rem; align-items: center; padding: .64rem 1rem; border-bottom: 1px solid var(--line); background: #fffaf5; }
+  .address { display: flex; align-items: center; gap: .55rem; flex: 1; min-width: 0; min-height: 2.52rem; margin-left: .35rem; padding: .24rem .32rem .24rem .73rem; background: #f8eee5; border: 1px solid var(--line); border-radius: .66rem; }
+  .address:focus-within { outline: 2px solid #e87941; outline-offset: 1px; }
+  .address > .icon { color: var(--soft); }
+  .address input, .hero-form input { flex: 1; width: 0; min-width: 0; color: var(--ink); border: 0; outline: 0; background: transparent; }
+  input::placeholder { color: #88634f; opacity: 1; }
+  .address button { border: 0; background: #f9dcc8; color: #822d0d; border-radius: .45rem; padding: .32rem .72rem; font-weight: 750; font-size: .83rem; }
+  .address button:hover { background: #f9c9a8; }
+  .stage { position: relative; display: grid; flex: 1; min-width: 0; min-height: 30rem; background: var(--paper); }
+  .portal { display: grid; min-width: 0; padding: 3rem 1.5rem; place-items: center; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 50% 39%, #fff6ea 0%, #fffaf5 59%); }
+  .start-wrap { display: grid; justify-items: center; width: min(100%, 38rem); min-width: 0; position: relative; }
+  .start-wrap::before { content: ''; z-index: -1; position: absolute; pointer-events: none; inset: -4rem -7rem auto; height: 24rem; background: radial-gradient(ellipse, #ffdbbc95 0%, #ffe7d540 43%, transparent 70%); }
+  .hero-mark { width: 5.05rem; height: 5.05rem; border-radius: 1.48rem; transform: rotate(-9deg); background: linear-gradient(142deg, #fa8a46, #d84c18 76%); box-shadow: 0 14px 30px #bc4a2540, inset 0 0 0 1px #ac3a1627; margin-bottom: 1.27rem; }
+  .hero-mark .leaf { transform: rotate(9deg); }
+  h1 { margin: 0; font-size: clamp(3.4rem, 9vw, 5.7rem); font-weight: 850; line-height: .98; letter-spacing: -.082em; }
+  .byline { margin: .9rem 0 1.9rem; color: var(--soft); font-size: .94rem; }
+  .hero-form { width: 100%; display: flex; align-items: center; gap: .75rem; padding: .44rem .5rem .44rem 1rem; border: 1px solid #e9c6ab; border-radius: .92rem; background: #fffdfa; box-shadow: 0 8px 28px #8c441213; min-height: 3.75rem; }
+  .hero-form:focus-within { outline: 2px solid #e87941; outline-offset: 2px; }
+  .hero-form > .icon { color: var(--orange); }
+  .primary { border: 0; border-radius: .62rem; background: var(--orange); color: white; padding: .62rem 1rem; min-height: 2.5rem; font-weight: 720; }
+  .primary:hover { background: #aa370d; }
+  .quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .68rem; margin-top: 1.4rem; width: 100%; }
+  .quick button { display: flex; text-align: left; align-items: center; justify-content: flex-start; gap: .65rem; min-height: 3.6rem; padding: .65rem .8rem; border: 1px solid var(--line); background: #fffaf5; border-radius: .75rem; font-weight: 650; }
+  .quick button:hover { background: var(--active); border-color: #e9bc9b; }
+  .quick .icon { width: 1.95rem; height: 1.95rem; color: #a43d13; background: #ffead8; border-radius: .52rem; }
+  .games-wrap { width: min(100%, 38rem); }
+  .games-wrap h1 { font-size: clamp(2.8rem, 7vw, 4.6rem); margin: .85rem 0 1.3rem; }
+  .games-mark { color: #9d360f; background: #ffe4d0; font-size: 1.35rem; }
+  .empty { background: #fff9f3; border: 1px dashed #e3b99a; border-radius: 1rem; padding: 1.7rem; }
+  .empty h2 { margin: 0 0 .4rem; font-size: 1.18rem; }
+  .empty p { margin: 0; color: var(--soft); }
+  .page { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: white; }
+  .viewer-note { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .4rem .8rem; padding: .55rem 1rem; background: #fff3e6; color: #694431; border-bottom: 1px solid var(--line); font-size: .88rem; }
+  .viewer-note a { color: #8c300e; font-weight: 700; text-underline-offset: 3px; }
+  iframe { border: 0; flex: 1 1 auto; min-height: 25rem; width: 100%; }
+  .message { background: #fff0e5; color: #8c300e; border-bottom: 1px solid var(--line); margin: 0; padding: .55rem 1rem; font-size: .88rem; }
+  dialog { width: min(29rem, calc(100% - 2rem)); border: 1px solid var(--line); color: var(--ink); border-radius: 1rem; background: #fffaf6; padding: 1.5rem; }
+  dialog::backdrop { background: #37180c66; }
+  dialog h2 { margin: 0 0 .7rem; }
+  dialog p { color: var(--soft); line-height: 1.5; }
+  dialog dl { display: grid; grid-template-columns: max-content 1fr; align-items: baseline; gap: .55rem 1rem; margin: 1rem 0 1.3rem; }
+  dialog dd { margin: 0; }
+  kbd { background: #fae9db; padding: .12rem .35rem; border: 1px solid var(--line); border-radius: .25rem; }
+  @media (max-width: 700px) {
+    .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+    .rail { flex-direction: row; align-items: center; flex-wrap: wrap; gap: .4rem .65rem; padding: .65rem .75rem; border-right: 0; border-bottom: 1px solid var(--line); }
+    .brand { margin: 0 auto 0 0; padding: 0; }
+    .brand .mark { width: 2.15rem; height: 2.15rem; }
+    .brand strong { font-size: 1.2rem; }
+    .rail-label { display: none; }
+    .rail nav { display: flex; gap: .18rem; }
+    .rail-button { padding: .43rem; gap: .2rem; font-size: .85rem; }
+    .rail-footer { margin: 0; padding: 0; }
+    .rail-footer button { font-size: .85rem; }
+    .tabbar { padding-inline: .45rem; }
+    .toolbar { padding: .6rem .45rem; gap: .1rem; }
+    .toolbar .icon-button { width: 1.9rem; }
+    .address { margin-left: .18rem; padding-left: .45rem; gap: .3rem; }
+    .portal { padding: 2.5rem 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="rail">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><span class="leaf"></span></span>
+      <div><strong>Maple</strong><small>made by pav?el??</small></div>
+    </div>
+    <p class="rail-label">Workspace</p>
+    <nav aria-label="Workspace">
+      <button class="rail-button" id="home" type="button"><span class="icon" aria-hidden="true">⌂</span>Home</button>
+      <button class="rail-button" id="games" type="button"><span class="icon" aria-hidden="true">◇</span>Games</button>
+    </nav>
+    <div class="rail-footer"><button id="help" type="button">Shortcuts</button></div>
+  </aside>
+  <div class="browser">
+    <div class="tabbar">
+      <div class="tabs" id="tabs" role="tablist" aria-label="Maple tabs"></div>
+      <button class="icon-button" id="add-tab" type="button" title="New tab" aria-label="New tab">+</button>
+    </div>
+    <div class="toolbar" aria-label="Navigation">
+      <button class="icon-button" id="back" type="button" title="Back" aria-label="Back">‹</button>
+      <button class="icon-button" id="forward" type="button" title="Forward" aria-label="Forward">›</button>
+      <button class="icon-button" id="reload" type="button" title="Reload" aria-label="Reload">↻</button>
+      <form class="address" id="address-form">
+        <span class="icon" aria-hidden="true">⌕</span>
+        <input id="address" aria-label="Address" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter a web address">
+        <button type="submit">Go</button>
+      </form>
+    </div>
+    <p class="message" id="message" role="status" hidden></p>
+    <main class="stage" id="stage" aria-label="Tab content"></main>
+  </div>
+</div>
+
+<template id="start-template">
+  <div class="start-wrap">
+    <span class="mark hero-mark" aria-hidden="true"><span class="leaf"></span></span>
+    <h1>Maple</h1>
+    <p class="byline">made by pav?el??</p>
+    <form class="hero-form">
+      <span class="icon" aria-hidden="true">⌕</span>
+      <input aria-label="Website URL" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter a website URL">
+      <button type="submit" class="primary">Open</button>
+    </form>
+    <div class="quick" aria-label="Quick links">
+      <button type="button" data-action="example"><span class="icon" aria-hidden="true">◎</span>Example site</button>
+      <button type="button" data-action="games"><span class="icon" aria-hidden="true">◇</span>Games</button>
+    </div>
+  </div>
+</template>
+<template id="games-template">
+  <div class="games-wrap">
+    <span class="mark games-mark" aria-hidden="true">◇</span>
+    <h1>Games</h1>
+    <div class="empty"><h2>No games yet</h2><p>Games will appear here when they’re added.</p></div>
+  </div>
+</template>
+<template id="page-template">
+  <div class="viewer-note">
+    <span>If the site doesn’t display here, try opening it directly.</span>
+    <a target="_blank" rel="noopener noreferrer">Open in browser</a>
+  </div>
+  <iframe sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer"></iframe>
+</template>
+<dialog id="shortcuts">
+  <h2>Maple shortcuts</h2>
+  <p>Type a shortcut in the address bar and press Enter.</p>
+  <dl>
+    <dt><kbd>/new</kbd></dt><dd>New tab</dd>
+    <dt><kbd>/home</kbd></dt><dd>Home</dd>
+    <dt><kbd>/games</kbd></dt><dd>Games</dd>
+    <dt><kbd>/help</kbd></dt><dd>Show shortcuts</dd>
+  </dl>
+  <form method="dialog"><button class="primary">Close</button></form>
+</dialog>
+<script>
+  'use strict';
+
+  const byId = (id) => document.getElementById(id);
+  const tabStrip = byId('tabs');
+  const stage = byId('stage');
+  const address = byId('address');
+  const back = byId('back');
+  const forward = byId('forward');
+  const reload = byId('reload');
+  const home = byId('home');
+  const games = byId('games');
+  const message = byId('message');
+  const shortcuts = byId('shortcuts');
+  const tabs = [];
+  let activeTab;
+  let nextTabId = 0;
+
+  const homeEntry = { kind: 'home', title: 'New tab' };
+  const gamesEntry = { kind: 'games', title: 'Games' };
+
+  function currentEntry(tab) {
+    return tab.history[tab.position];
+  }
+
+  function showMessage(text = '') {
+    message.hidden = !text;
+    message.textContent = text;
+  }
+
+  function refreshChrome() {
+    const entry = currentEntry(activeTab);
+    address.value = entry.url || (entry.kind === 'games' ? '/games' : '');
+    back.disabled = activeTab.position === 0;
+    forward.disabled = activeTab.position === activeTab.history.length - 1;
+    reload.disabled = entry.kind !== 'web';
+    home.setAttribute('aria-current', entry.kind === 'home' ? 'page' : 'false');
+    games.setAttribute('aria-current', entry.kind === 'games' ? 'page' : 'false');
+    for (const tab of tabs) {
+      const selected = tab === activeTab;
+      const tabEntry = currentEntry(tab);
+      tab.row.classList.toggle('active', selected);
+      tab.panel.hidden = !selected;
+      tab.select.setAttribute('aria-selected', String(selected));
+      tab.select.tabIndex = selected ? 0 : -1;
+      tab.label.textContent = tabEntry.title;
+      tab.close.setAttribute('aria-label', `Close ${tabEntry.title} tab`);
+    }
+    showMessage();
+  }
+
+  function selectTab(tab, focus = false) {
+    activeTab = tab;
+    refreshChrome();
+    if (focus) tab.select.focus();
+    const strip = tabStrip.getBoundingClientRect();
+    const row = tab.row.getBoundingClientRect();
+    if (row.left < strip.left) tabStrip.scrollLeft += row.left - strip.left;
+    if (row.right > strip.right) tabStrip.scrollLeft += row.right - strip.right;
+  }
+
+  function renderPage(tab) {
+    const entry = currentEntry(tab);
+    tab.panel.replaceChildren();
+    tab.panel.className = entry.kind === 'web' ? 'page' : 'portal';
+    const template = entry.kind === 'home' ? 'start' : entry.kind === 'games' ? 'games' : 'page';
+    tab.panel.append(byId(`${template}-template`).content.cloneNode(true));
+
+    if (entry.kind === 'web') {
+      const frame = tab.panel.querySelector('iframe');
+      frame.title = `Website preview for ${entry.title}`;
+      frame.src = entry.url;
+      tab.panel.querySelector('a').href = entry.url;
+    }
+    if (entry.kind === 'home') {
+      const form = tab.panel.querySelector('form');
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        openAddress(form.querySelector('input').value);
+      });
+      tab.panel.querySelector('[data-action="example"]').addEventListener('click', () => openAddress('https://example.com/'));
+      tab.panel.querySelector('[data-action="games"]').addEventListener('click', () => navigate(gamesEntry));
+    }
+  }
+
+  function addTab(focus = false) {
+    const id = ++nextTabId;
+    const row = document.createElement('div');
+    row.className = 'tab';
+    row.setAttribute('role', 'presentation');
+    const select = document.createElement('button');
+    select.type = 'button';
+    select.id = `tab-${id}`;
+    select.className = 'tab-select';
+    select.setAttribute('role', 'tab');
+    select.setAttribute('aria-controls', `panel-${id}`);
+    const glyph = document.createElement('span');
+    glyph.className = 'icon';
+    glyph.setAttribute('aria-hidden', 'true');
+    glyph.textContent = '◈';
+    const label = document.createElement('span');
+    label.className = 'tab-title';
+    select.append(glyph, label);
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'tab-close';
+    close.textContent = '×';
+    row.append(select, close);
+    const panel = document.createElement('section');
+    panel.id = `panel-${id}`;
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', select.id);
+    const tab = { row, select, close, label, panel, history: [homeEntry], position: 0 };
+    select.addEventListener('click', () => selectTab(tab));
+    close.addEventListener('click', () => closeTab(tab));
+    tabs.push(tab);
+    tabStrip.append(row);
+    stage.append(panel);
+    renderPage(tab);
+    selectTab(tab);
+    if (focus) tab.panel.querySelector('input').focus();
+  }
+
+  function closeTab(tab) {
+    const index = tabs.indexOf(tab);
+    const restoreFocus = tab.row.contains(document.activeElement);
+    tabs.splice(index, 1);
+    tab.row.remove();
+    tab.panel.remove();
+    if (!tabs.length) {
+      addTab(restoreFocus);
+    } else if (tab === activeTab) {
+      selectTab(tabs[Math.min(index, tabs.length - 1)], restoreFocus);
+    } else if (restoreFocus) {
+      activeTab.select.focus();
+    }
+  }
+
+  function navigate(entry) {
+    const tab = activeTab;
+    const previous = currentEntry(tab);
+    if (entry.kind !== previous.kind || entry.url !== previous.url) {
+      tab.history.splice(tab.position + 1, tab.history.length, entry);
+      tab.position += 1;
+      renderPage(tab);
+    }
+    refreshChrome();
+  }
+
+  function moveHistory(offset) {
+    const nextPosition = activeTab.position + offset;
+    if (nextPosition < 0 || nextPosition >= activeTab.history.length) return;
+    activeTab.position = nextPosition;
+    renderPage(activeTab);
+    refreshChrome();
+  }
+
+  function openAddress(input) {
+    const value = input.trim();
+    if (!value) return;
+    switch (value.toLowerCase()) {
+      case '/new': addTab(true); return;
+      case '/home': navigate(homeEntry); return;
+      case '/games': navigate(gamesEntry); return;
+      case '/help': refreshChrome(); shortcuts.showModal(); return;
+    }
+    try {
+      const qualified = /^[a-z][a-z\d+.-]*:\/\//i.test(value) ? value : `https://${value}`;
+      const url = new URL(qualified);
+      if (!['https:', 'http:'].includes(url.protocol) || !url.hostname.includes('.') || url.username || url.password || /\s/.test(value)) {
+        throw new Error('Invalid website address');
+      }
+      if (location.protocol === 'https:' && url.protocol === 'http:') {
+        showMessage('Use an HTTPS address to preview a website here.');
+        return;
+      }
+      navigate({ kind: 'web', title: url.hostname, url: url.href });
+    } catch {
+      showMessage('Enter a website address like example.com, or type /help for shortcuts.');
+    }
+  }
+
+  tabStrip.addEventListener('keydown', (event) => {
+    if (event.target !== activeTab.select) return;
+    const index = tabs.indexOf(activeTab);
+    let targetIndex;
+    switch (event.key) {
+      case 'ArrowLeft': targetIndex = (index + tabs.length - 1) % tabs.length; break;
+      case 'ArrowRight': targetIndex = (index + 1) % tabs.length; break;
+      case 'Home': targetIndex = 0; break;
+      case 'End': targetIndex = tabs.length - 1; break;
+      case 'Delete': event.preventDefault(); closeTab(activeTab); return;
+      default: return;
+    }
+    event.preventDefault();
+    selectTab(tabs[targetIndex], true);
+  });
+
+  byId('address-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    openAddress(address.value);
+  });
+  byId('add-tab').addEventListener('click', () => addTab(true));
+  byId('help').addEventListener('click', () => shortcuts.showModal());
+  home.addEventListener('click', () => navigate(homeEntry));
+  games.addEventListener('click', () => navigate(gamesEntry));
+  back.addEventListener('click', () => moveHistory(-1));
+  forward.addEventListener('click', () => moveHistory(1));
+  reload.addEventListener('click', () => renderPage(activeTab));
+  addTab();
+</script>
+</body>
+</html>
